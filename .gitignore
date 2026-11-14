@@ -1,0 +1,6 @@
+backend/build/
+.vscode/
+__pycache__/
+*.pyc
+backend/crow/
+

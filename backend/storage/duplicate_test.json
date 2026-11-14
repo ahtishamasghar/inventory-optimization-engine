@@ -1,0 +1,6 @@
+{"products":[
+        {"id":101,"name":"Keyboard","category":"Electronics",
+         "price":2500,"quantity":20,"minStock":5},
+        {"id":101,"name":"Mouse","category":"Electronics",
+         "price":1200,"quantity":15,"minStock":5}
+    ]}

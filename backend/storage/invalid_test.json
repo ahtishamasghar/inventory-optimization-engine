@@ -1,0 +1,3 @@
+{"products":[{"id":201,"name":"Test",
+    "category":"Electronics","price":500,
+    "quantity":2.5,"minStock":1}]}
