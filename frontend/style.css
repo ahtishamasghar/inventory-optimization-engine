@@ -72,10 +72,11 @@ button:disabled { cursor: wait; opacity: .58; }
 .brand-mark .icon { width: 22px; height: 22px; }
 .brand-light { color: #99aeca; font-weight: 450; }
 .topbar-divider { width: 1px; height: 22px; background: var(--border); }
-.topbar-location { color: var(--text-muted); font-size: 12px; word-spacing: 5px; }
-.topbar-location strong { color: var(--text-secondary); font-weight: 500; }
-.connection-state { display: inline-flex; align-items: center; gap: 7px; margin-left: auto; border: 1px solid var(--border); border-radius: 6px; padding: 5px 9px; color: var(--text-secondary); font-size: 10px; font-weight: 500; white-space: nowrap; }
-.connection-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--text-muted); }
+.topbar-actions { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.github-icon { fill: currentColor; stroke: none; }
+.documentation-content { padding: 20px; border: 1px solid var(--border); border-radius: 8px; background: #101a28; color: var(--text-secondary); font-size: 14px; line-height: 1.7; }
+.connection-state { display: inline-flex; align-items: center; gap: 8px; min-height: 38px; margin-left: auto; border: 1px solid var(--border); border-radius: 7px; padding: 8px 13px; color: var(--text-secondary); font-size: 12px; font-weight: 550; white-space: nowrap; }
+.connection-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); }
 .connection-state[data-state="online"] .connection-dot { background: var(--success); box-shadow: 0 0 0 3px #79dbad0a; }
 .connection-state[data-state="offline"] { color: var(--danger); border-color: #6f3b4d; }
 .connection-state[data-state="offline"] .connection-dot { background: var(--danger); }
@@ -128,6 +129,10 @@ h1 > span { color: #a7bad3; font-weight: 450; }
 .button-primary:hover:not(:disabled) { background: var(--accent-hover); box-shadow: 0 0 0 3px #71d8be10; }
 .button-secondary { color: #d3ddec; background: #202d40; border-color: #34465e; }
 .button-secondary:hover:not(:disabled) { background: #2a3b53; border-color: #4c6280; }
+.button-reset { color: var(--text-secondary); background: #202d40; border-color: #34465e; }
+.button-reset:hover:not(:disabled) { background: #2a3b53; border-color: #4c6280; }
+.button-reset[aria-pressed="true"] { color: var(--accent); background: #1c382f; border-color: #477b6b; }
+.button-reset[aria-pressed="true"]:hover:not(:disabled) { background: #285244; border-color: #71d8be; }
 .button-quiet { color: #adc0d9; border-color: var(--border); background: #15202f; }
 .button-quiet:hover:not(:disabled) { background: #213147; border-color: #3b516c; }
 .button-warning { color: var(--warning); border-color: #51432f; background: #2b261e; }
@@ -143,10 +148,24 @@ h1 > span { color: #a7bad3; font-weight: 450; }
 /* Catalog and search toolbar */
 .inventory { min-width: 0; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); overflow: hidden; box-shadow: var(--shadow); animation: enter 460ms 110ms var(--ease) both; }
 .inventory-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; padding: 22px 24px; }
-.section-title { display: flex; align-items: center; gap: 10px; }
+.section-title { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
 .section-icon { color: #92a7c2; }
 .section-icon .icon { width: 18px; height: 18px; }
 .section-title h2 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -.4px; }
+.count-badge.showing-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding: 9px 16px;
+    margin-left: 4px;
+    color: var(--accent);
+    border-color: #36584f;
+    border-radius: 8px;
+    background: #18332d;
+    font-size: 14px;
+    font-weight: 600;
+}
 .count-badge { min-width: 26px; padding: 2px 7px; border: 1px solid #304157; border-radius: 5px; background: #1c2a3d; color: #aec2dd; font-size: 10px; font-weight: 550; text-align: center; font-variant-numeric: tabular-nums; }
 .inventory-actions { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px 20px; padding: 17px 24px; background: #101925; border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft); }
 .search-controls { display: flex; align-items: center; gap: 8px; min-width: 0; }
@@ -162,8 +181,7 @@ input::placeholder { color: #7187a2; }
 .view-controls .button { padding-left: 10px; padding-right: 10px; font-size: 11px; }
 .view-controls .button[aria-pressed="true"] { color: var(--accent); border-color: #477b6b; background: #1c382f; box-shadow: inset 0 0 0 1px #71d8be0a; }
 .algorithm-tag { padding: 0 4px; border-radius: 3px; color: #94a8c3; border: 1px solid #35475f; font-size: 8px; line-height: 14px; letter-spacing: .4px; }
-.view-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 51px; padding: 7px 24px; }
-#search-message { margin: 0; min-width: 0; color: var(--text-muted); font-size: 11px; overflow-wrap: anywhere; }
+#search-message { margin: 0; min-width: 0; padding: 12px 24px; color: var(--text-muted); font-size: 11px; overflow-wrap: anywhere; }
 .feedback-banner { display: flex; align-items: center; gap: 10px; padding: 12px 24px; color: #f0bbc5; border-top: 1px solid #533442; border-bottom: 1px solid #533442; background: #35212d; font-size: 12px; }
 .feedback-banner > span { flex: 1; }
 .feedback-banner .button { color: #f0bbc5; }
@@ -266,6 +284,9 @@ tbody tr:hover td { background: #20304766; }
     .project-description { max-width: 330px; }
 }
 @media (max-width: 900px) {
+    .topbar { flex-wrap: wrap; gap: 12px; padding-block: 14px; }
+    .topbar-divider { display: none; }
+    .topbar-actions { order: 1; flex-basis: 100%; }
     .project-header { align-items: flex-start; flex-direction: column; padding-top: 32px; gap: 26px; }
     h1 { font-size: 35px; }
     .project-description { max-width: none; }
@@ -282,8 +303,8 @@ tbody tr:hover td { background: #20304766; }
     .topbar { min-height: 66px; padding-inline: 18px; gap: 12px; }
     .brand { font-size: 15px; gap: 9px; }
     .brand-mark { width: 31px; height: 31px; }
-    .topbar-divider, .topbar-location { display: none; }
-    .connection-state { font-size: 9px; padding: 5px 7px; }
+    .topbar-divider { display: none; }
+    .connection-state { min-height: 36px; font-size: 11px; padding: 8px 10px; }
     .dashboard { padding: 0 16px 22px; }
     .project-header { padding: 30px 0 24px; gap: 23px; }
     h1 { font-size: clamp(25px, 6.8vw, 34px); letter-spacing: -.8px; }
@@ -307,18 +328,18 @@ tbody tr:hover td { background: #20304766; }
     .section-title h2 { font-size: 17px; }
     .section-icon { display: none; }
     .button { min-height: 44px; padding: 10px 12px; }
+    .topbar-actions .button { flex: 1; }
     .inventory-actions { padding: 14px 16px; gap: 13px; }
     .search-controls { flex-wrap: wrap; gap: 8px; }
     .search-field { flex-basis: 100%; min-height: 44px; }
     #search-mode { width: 119px; min-height: 42px; font-size: 10px; padding-left: 9px; }
     .search-input-wrap { padding-inline: 9px; gap: 7px; }
     #search-id { min-height: 42px; font-size: 12px; }
-    #search-btn { width: 100%; }
+    #search-btn, #clear-search-btn { flex: 1; width: auto; }
     .view-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
     .view-controls .button { padding-inline: 8px; }
     #lowest-stock-btn { grid-column: 1 / -1; }
-    .view-bar { padding-inline: 16px; }
-    .view-bar .button-text { min-height: 44px; }
+    #search-message { padding-inline: 16px; }
     .feedback-banner { padding: 12px 16px; flex-wrap: wrap; }
     .inventory-footer { padding: 13px 16px; font-size: 9px; }
     .page-footer { font-size: 9px; }
@@ -339,7 +360,7 @@ tbody tr:hover td { background: #20304766; }
     #product-form { grid-template-columns: 1fr; }
     .brand { font-size: 13px; }
     .brand-mark { width: 28px; height: 28px; }
-    .connection-state { padding-inline: 5px; }
+    .connection-state { padding-inline: 8px; }
     .delete-actions { flex-direction: column-reverse; }
 }
 

@@ -7,6 +7,7 @@ const form = document.getElementById("product-form");
 const message = document.getElementById("form-message");
 const saveButton = document.getElementById("save-btn");
 const deleteModal = document.getElementById("delete-modal");
+const documentationModal = document.getElementById("documentation-modal");
 const searchInput = document.getElementById("search-id");
 let editingProductId = null;
 let currentView = { mode: "all" };
@@ -16,6 +17,8 @@ let savingProduct = false;
 let deletingProduct = false;
 let pendingDeletion = null;
 let toastTimer;
+let liveSearchTimer;
+let visibleProductCount = null;
 
 function icon(name) {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -77,7 +80,9 @@ function setLoading(loading) {
     table.setAttribute("aria-busy", String(loading));
     document.getElementById("product-list").inert = loading;
     document.getElementById("inventory-stats").setAttribute("aria-busy", String(loading));
-    document.getElementById("result-count").textContent = loading ? "Loading inventory…" : document.getElementById("result-count").textContent;
+    document.getElementById("result-count").textContent = loading
+        ? "Updating…"
+        : `Showing ${visibleProductCount === null ? "—" : numberFormat.format(visibleProductCount)}`;
 }
 
 function showLoadError(text) {
@@ -87,7 +92,6 @@ function showLoadError(text) {
 
 function updateTotals(products) {
     document.getElementById("total-products").textContent = numberFormat.format(products.length);
-    document.getElementById("catalog-count").textContent = numberFormat.format(products.length);
     document.getElementById("total-stock").textContent = numberFormat.format(products.reduce((total, product) => total + product.quantity, 0));
     const lowStock = products.filter(product => product.quantity <= product.minStock).length;
     document.getElementById("low-stock").textContent = numberFormat.format(lowStock);
@@ -117,6 +121,7 @@ function emptyRow(title, description, symbol = "box") {
 }
 
 function renderProducts(products) {
+    visibleProductCount = products.length;
     const fragment = document.createDocumentFragment();
     products.forEach(product => {
         const row = document.createElement("tr");
@@ -165,12 +170,14 @@ function renderProducts(products) {
     }
     document.getElementById("product-list").replaceChildren(fragment);
     updateTableViewport();
-    document.getElementById("result-count").textContent = `${numberFormat.format(products.length)} product${products.length === 1 ? "" : "s"} shown`;
+    document.getElementById("result-count").textContent = `Showing ${numberFormat.format(products.length)}`;
 }
 
 function updateViewLabel(view) {
-    const labels = { all: "All products", price: "Price · Low to high", id: "Product ID · BST inorder traversal", lowest: "Lowest stock · Min-Heap", "search-id": `Product ID · ${view.query}`, "search-name": `Name matches · “${view.query}”` };
+    const labels = { all: "", price: "Price · Low to high", id: "Product ID · BST inorder traversal", lowest: "Lowest stock · Min-Heap", "search-id": `Product ID · ${view.query}`, "search-name": `Name matches · “${view.query}”` };
     document.getElementById("search-message").textContent = labels[view.mode];
+    document.getElementById("search-message").hidden = view.mode === "all";
+    document.getElementById("clear-search-btn").setAttribute("aria-pressed", String(view.mode === "all"));
     document.getElementById("sort-price-btn").setAttribute("aria-pressed", String(view.mode === "price"));
     document.getElementById("sort-id-btn").setAttribute("aria-pressed", String(view.mode === "id"));
     document.getElementById("lowest-stock-btn").setAttribute("aria-pressed", String(view.mode === "lowest"));
@@ -182,6 +189,7 @@ function updateViewLabel(view) {
 }
 
 async function refreshView(view = currentView) {
+    clearTimeout(liveSearchTimer);
     const version = ++requestVersion;
     currentView = { ...view };
     setLoading(true);
@@ -221,8 +229,10 @@ async function refreshView(view = currentView) {
     } catch (error) {
         if (version !== requestVersion) return false;
         showLoadError(error.message);
-        document.getElementById("result-count").textContent = "Could not refresh inventory";
+        visibleProductCount = 0;
+        document.getElementById("result-count").textContent = "Showing 0";
         document.getElementById("search-message").textContent = "View unavailable · Retry to refresh";
+        document.getElementById("search-message").hidden = false;
         // Do not present stale rows as the result of a failed search or sort.
         document.getElementById("product-list").replaceChildren(emptyRow("Inventory could not be loaded", "Check the connection and select Retry.", "alert"));
         return false;
@@ -245,9 +255,13 @@ function configureSearchInput() {
 
 function searchProduct() {
     const input = searchInput.value.trim();
+    if (!input) {
+        searchInput.setCustomValidity("");
+        return loadProducts();
+    }
     const id = Number(input);
-    if (!input || !Number.isInteger(id) || id < 0 || id > MAX_INTEGER) {
-        searchInput.setCustomValidity(!input ? "Please enter a Product ID." : "Enter a whole Product ID between 0 and 2147483647.");
+    if (!Number.isInteger(id) || id < 0 || id > MAX_INTEGER) {
+        searchInput.setCustomValidity("Enter a whole Product ID between 0 and 2147483647.");
         searchInput.reportValidity();
         return;
     }
@@ -257,9 +271,8 @@ function searchProduct() {
 function searchProductsByName() {
     const name = searchInput.value.trim();
     if (!name) {
-        searchInput.setCustomValidity("Please enter a product name.");
-        searchInput.reportValidity();
-        return;
+        searchInput.setCustomValidity("");
+        return loadProducts();
     }
     return refreshView({ mode: "search-name", query: name });
 }
@@ -285,7 +298,7 @@ async function closeDialog(dialog) {
     }
     dialog.close();
     dialog.classList.remove("is-closing");
-    document.body.classList.remove("modal-open");
+    document.body.classList.toggle("modal-open", Boolean(document.querySelector("dialog[open]")));
 }
 
 function setFormError(text) {
@@ -394,6 +407,19 @@ document.getElementById("add-product-btn").addEventListener("click", () => {
     document.getElementById("product-id").focus();
 });
 
+for (const dialog of [modal, deleteModal, documentationModal]) {
+    dialog.addEventListener("close", () => {
+        document.body.classList.toggle("modal-open", Boolean(document.querySelector("dialog[open]")));
+    });
+}
+
+document.getElementById("documentation-btn").addEventListener("click", () => openDialog(documentationModal));
+document.getElementById("close-documentation-btn").addEventListener("click", () => closeDialog(documentationModal));
+documentationModal.addEventListener("cancel", event => {
+    event.preventDefault();
+    closeDialog(documentationModal);
+});
+
 for (const id of ["cancel-btn", "close-modal-btn"]) {
     document.getElementById(id).addEventListener("click", () => { if (!savingProduct) closeDialog(modal); });
 }
@@ -404,16 +430,46 @@ for (const dialog of [modal, deleteModal]) {
         if (dialog === modal ? !savingProduct : !deletingProduct) closeDialog(dialog);
     });
 }
+function runSearch() {
+    clearTimeout(liveSearchTimer);
+    return document.getElementById("search-mode").value === "name"
+        ? searchProductsByName()
+        : searchProduct();
+}
+
 document.getElementById("search-form").addEventListener("submit", event => {
     event.preventDefault();
-    if (document.getElementById("search-mode").value === "name") searchProductsByName();
-    else searchProduct();
+    runSearch();
 });
-searchInput.addEventListener("input", () => searchInput.setCustomValidity(""));
+searchInput.addEventListener("input", () => {
+    clearTimeout(liveSearchTimer);
+    searchInput.setCustomValidity("");
+    const query = searchInput.value.trim();
+    if (!query) {
+        if (currentView.mode !== "all") loadProducts();
+        return;
+    }
+
+    // Ignore results from a previous query while the user types a new one.
+    if (["search-id", "search-name", "lowest"].includes(currentView.mode)) {
+        requestVersion++;
+        setLoading(false);
+    }
+    if (document.getElementById("search-mode").value === "id") {
+        const id = Number(query);
+        if (!Number.isInteger(id) || id < 0 || id > MAX_INTEGER) {
+            searchInput.setCustomValidity("Enter a whole Product ID between 0 and 2147483647.");
+            document.getElementById("search-message").textContent = "Enter a numeric Product ID, or choose Search by Name.";
+            document.getElementById("search-message").hidden = false;
+            return;
+        }
+    }
+    liveSearchTimer = setTimeout(runSearch, 300);
+});
 document.getElementById("search-mode").addEventListener("change", () => {
-    searchInput.value = "";
     configureSearchInput();
-    loadProducts();
+    if (searchInput.value.trim()) runSearch();
+    else loadProducts();
 });
 document.getElementById("clear-search-btn").addEventListener("click", () => {
     searchInput.value = "";
@@ -430,7 +486,9 @@ document.getElementById("dismiss-toast-btn").addEventListener("click", () => { d
 const tableViewport = document.getElementById("inventory-table");
 function updateTableViewport() {
     tableViewport.style.setProperty("--table-view-width", `${tableViewport.clientWidth}px`);
-    document.getElementById("table-scroll-hint").hidden = tableViewport.scrollWidth <= tableViewport.clientWidth;
+    const hasOverflow = tableViewport.scrollWidth > tableViewport.clientWidth;
+    document.getElementById("table-scroll-hint").hidden = !hasOverflow;
+    document.getElementById("table-scroll-footer").hidden = !hasOverflow;
 }
 new ResizeObserver(updateTableViewport).observe(tableViewport);
 
