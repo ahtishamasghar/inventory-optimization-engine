@@ -3,4 +3,3 @@ backend/build/
 __pycache__/
 *.pyc
 backend/crow/
-frontend_vanila
